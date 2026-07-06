@@ -1,0 +1,160 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Run unit tests
+        run: >
+          dotnet test tests/CalculatorLib.UnitTests/CalculatorLib.UnitTests.csproj
+          --logger "trx;LogFileName=unit-test-results.trx"
+          --results-directory ./TestResults
+
+      - name: Upload unit test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: ./TestResults
+
+      - name: Upload unit Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-unit
+          path: tests/CalculatorLib.UnitTests/bin/Debug/net8.0/allure-results
+
+  api-tests:
+    name: API Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build API test project
+        run: dotnet build tests/Api.Tests/Api.Tests.csproj --no-restore
+
+      - name: Install Playwright browsers
+        run: pwsh tests/Api.Tests/bin/Debug/net8.0/playwright.ps1 install --with-deps chromium
+
+      - name: Run API tests
+        run: >
+          dotnet test tests/Api.Tests/Api.Tests.csproj --no-build
+          --logger "trx;LogFileName=api-test-results.trx"
+          --results-directory ./TestResults
+
+      - name: Upload API test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-test-results
+          path: ./TestResults
+
+      - name: Upload API Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-api
+          path: tests/Api.Tests/bin/Debug/net8.0/allure-results
+
+  ui-tests:
+    name: UI Tests (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build UI test project
+        run: dotnet build tests/UI.Tests/UI.Tests.csproj --no-restore
+
+      - name: Install Playwright browser (${{ matrix.browser }})
+        run: pwsh tests/UI.Tests/bin/Debug/net8.0/playwright.ps1 install --with-deps ${{ matrix.browser }}
+
+      - name: Run UI tests on ${{ matrix.browser }}
+        run: >
+          dotnet test tests/UI.Tests/UI.Tests.csproj --no-build
+          --settings tests/UI.Tests/playwright.runsettings
+          --logger "trx;LogFileName=ui-test-results-${{ matrix.browser }}.trx"
+          --results-directory ./TestResults
+          -- Playwright.BrowserName=${{ matrix.browser }}
+
+      - name: Upload UI test results (${{ matrix.browser }})
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-results-${{ matrix.browser }}
+          path: ./TestResults
+
+      - name: Upload UI Allure results (${{ matrix.browser }})
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-ui-${{ matrix.browser }}
+          path: tests/UI.Tests/bin/Debug/net8.0/allure-results
+
+  allure-report:
+    name: Publish Allure Report
+    runs-on: ubuntu-latest
+    needs: [unit-tests, api-tests, ui-tests]
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all Allure results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: allure-results-*
+          path: merged-allure-results
+          merge-multiple: true
+
+      - name: Generate Allure report
+        run: npx allure-commandline@2 generate merged-allure-results --clean -o allure-report
+
+      - name: Upload Allure report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report
+
+      - name: Publish report to GitHub Pages
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: allure-report

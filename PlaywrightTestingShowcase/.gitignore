@@ -1,0 +1,30 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Test results
+TestResults/
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+
+## Playwright
+playwright-report/
+test-results/
+tests/**/bin/Debug/**/playwright/
+
+## IDE
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+
+## OS
+.DS_Store
+Thumbs.db
