@@ -136,7 +136,7 @@ jobs:
     needs: [unit-tests, api-tests, ui-tests]
     if: always()
     permissions:
-      contents: read
+      contents: write
       pages: write
     steps:
       - uses: actions/checkout@v4
