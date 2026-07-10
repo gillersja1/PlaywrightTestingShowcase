@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RunSettings>
   <Playwright>
-    <!-- Overridden in CI via: dotnet test --settings playwright.runsettings -- Playwright.BrowserName=firefox -->
+    <!-- Overridden in CI via: dotnet test (use the settings option and Playwright.BrowserName=firefox) -->
     <BrowserName>chromium</BrowserName>
     <ExpectTimeout>5000</ExpectTimeout>
     <LaunchOptions>
