@@ -28,3 +28,6 @@ tests/**/bin/Debug/**/playwright/
 ## OS
 .DS_Store
 Thumbs.db
+
+# Local runsettings (may contain secrets)
+tests/Api.Tests/reqres.runsettings
