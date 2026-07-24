@@ -43,12 +43,10 @@ public class ReqResApiTests
 
         _request = await _playwright.APIRequest.NewContextAsync(contextOptions);
 
-        if (!_hasApiKey)
-        {
-            // ReqRes recently requires an API key for many endpoints. If no key is
-            // configured, skip the entire fixture to avoid network-dependent failures.
-            Assert.Ignore("REQRES_API_KEY not set; skipping ReqRes API tests. Create a free key at https://app.reqres.in/api-keys and set the REQRES_API_KEY environment variable to run these tests.");
-        }
+        // Do not skip the whole fixture when an API key is not present. Individual
+        // tests that perform write operations will skip themselves if no key is
+        // configured. This allows read-only tests (GET) to run in environments
+        // without an API key.
     }
 
     [OneTimeTearDown]
