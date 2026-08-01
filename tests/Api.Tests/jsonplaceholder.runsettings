@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <RunConfiguration>
+	<!--
+	  Add your local REQRES_API_KEY here for running tests locally.
+	  WARNING: Do NOT commit real secrets to the repository. Replace the value
+	  locally or keep a private copy of this file that is not checked in.
+	-->
+	<EnvironmentVariables>
+	  <REQRES_API_KEY>reqres_6acf18f336a442d6828f02ee52aff44d</REQRES_API_KEY>
+	</EnvironmentVariables>
+  </RunConfiguration>
+</RunSettings>
