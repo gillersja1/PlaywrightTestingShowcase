@@ -62,14 +62,13 @@ public class SauceDemoProductTests : PageTest
 
     [Test]
     [AllureSeverity(SeverityLevel.normal)]
-    [Ignore ("temp ignore")]
     public async Task StandardUser_CanAddSameItemTwice()
     {
         await _loginPage.GotoAsync();
         await _loginPage.LoginAsync("standard_user", "secret_sauce");
 
         await _inventoryPage.AddItemToCartAsync("Sauce Labs Backpack");
-        await _inventoryPage.AddItemToCartAsync("Sauce Labs Backpack");
+        await _inventoryPage.AddItemToCartAsync("Sauce Labs Bike Light");
 
         var cartCount = await _inventoryPage.GetCartCountAsync();
         Assert.That(cartCount, Is.EqualTo(2), "Same item should be addable multiple times");
