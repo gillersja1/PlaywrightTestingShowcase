@@ -32,7 +32,7 @@ public class CartPage
     {
         var item = CartItems.Filter(new LocatorFilterOptions { HasText = itemName });
         var before = await CartItems.CountAsync();
-        await item.Locator("button", new LocatorLocatorOptions { HasText = "Remove" }).ClickAsync();
+        await item.Locator("button").Filter(new LocatorFilterOptions { HasText = "Remove" }).ClickAsync();
         // wait until the cart item count decreases by one
         await _page.WaitForFunctionAsync($"() => document.querySelectorAll('.cart_item').length === {before - 1}");
     }

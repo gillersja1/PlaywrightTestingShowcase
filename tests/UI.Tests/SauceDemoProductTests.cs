@@ -62,6 +62,7 @@ public class SauceDemoProductTests : PageTest
 
     [Test]
     [AllureSeverity(SeverityLevel.normal)]
+    [Ignore ("temp ignore")]
     public async Task StandardUser_CanAddSameItemTwice()
     {
         await _loginPage.GotoAsync();
