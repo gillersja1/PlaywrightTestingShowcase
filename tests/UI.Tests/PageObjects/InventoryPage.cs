@@ -23,7 +23,7 @@ public class InventoryPage
     public async Task AddItemToCartAsync(string itemName)
     {
         var item = InventoryItems.Filter(new LocatorFilterOptions { HasText = itemName });
-        await item.Locator("button", new LocatorLocatorOptions { HasText = "Add to cart" }).ClickAsync();
+        await item.Locator("button").Filter(new LocatorFilterOptions { HasText = "Add to cart" }).ClickAsync();
     }
 
     public async Task<int> GetCartCountAsync()
