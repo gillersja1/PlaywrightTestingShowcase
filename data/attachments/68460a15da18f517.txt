@@ -1,0 +1,1 @@
+Add to cart response time: 47ms
