@@ -1,4 +1,5 @@
 using Microsoft.Playwright;
+using UI.Tests.TestData;
 
 namespace UI.Tests.PageObjects;
 
@@ -12,6 +13,9 @@ public class InventoryPage
     private ILocator PageTitle => _page.Locator(".title");
     private ILocator CartBadge => _page.Locator(".shopping_cart_badge");
     private ILocator InventoryItems => _page.Locator(".inventory_item");
+    private ILocator CartLink => _page.Locator(".shopping_cart_link");
+    private ILocator SortDropdown => _page.Locator(".page_wrapper .select_container select");
+    private ILocator ProductImages => _page.Locator(".inventory_item_img");
 
     public InventoryPage(IPage page)
     {
@@ -29,9 +33,7 @@ public class InventoryPage
     public async Task<int> GetCartCountAsync()
     {
         if (!await CartBadge.IsVisibleAsync())
-        {
             return 0;
-        }
 
         var text = await CartBadge.InnerTextAsync();
         return int.Parse(text);
@@ -51,7 +53,6 @@ public class InventoryPage
         for (int i = 0; i < count; i++)
         {
             var priceText = await priceElements.Nth(i).InnerTextAsync();
-            // Remove dollar sign and parse
             if (decimal.TryParse(priceText.Replace("$", ""), out var price))
             {
                 prices.Add(price);
@@ -59,5 +60,57 @@ public class InventoryPage
         }
 
         return prices;
+    }
+
+    public async Task RemoveItemFromCartAsync(string itemName)
+    {
+        var item = InventoryItems.Filter(new LocatorFilterOptions { HasText = itemName });
+        await item.Locator("button").Filter(new LocatorFilterOptions { HasText = "Remove" }).ClickAsync();
+    }
+
+    public async Task<bool> IsItemInCartAsync(string itemName)
+    {
+        var item = InventoryItems.Filter(new LocatorFilterOptions { HasText = itemName });
+        var button = item.Locator("button").Filter(new LocatorFilterOptions { HasText = "Remove" });
+        return await button.IsVisibleAsync();
+    }
+
+    public async Task SortByAsync(string sortOption)
+    {
+        await SortDropdown.SelectOptionAsync(sortOption);
+        await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+    }
+
+    public async Task<List<string>> GetAllProductNamesAsync()
+    {
+        var names = new List<string>();
+        var count = await InventoryItems.CountAsync();
+
+        for (int i = 0; i < count; i++)
+        {
+            var name = await InventoryItems.Nth(i).Locator(".inventory_item_name").InnerTextAsync();
+            names.Add(name);
+        }
+
+        return names;
+    }
+
+    public async Task<bool> AreAllProductsDisplayedAsync()
+    {
+        var imageCount = await ProductImages.CountAsync();
+        var itemCount = await GetProductCountAsync();
+        return imageCount == itemCount && imageCount > 0;
+    }
+
+    public async Task ClickProductAsync(string productName)
+    {
+        var item = InventoryItems.Filter(new LocatorFilterOptions { HasText = productName });
+        await item.Locator(".inventory_item_name").ClickAsync();
+    }
+
+    public async Task GoToCartAsync()
+    {
+        await CartLink.ClickAsync();
+        await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
     }
 }

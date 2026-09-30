@@ -7,5 +7,9 @@
     <LaunchOptions>
       <Headless>true</Headless>
     </LaunchOptions>
+    <!-- Record video for all tests -->
+    <RecordVideo>on</RecordVideo>
+    <!-- Record trace for debugging -->
+    <RecordTrace>on</RecordTrace>
   </Playwright>
 </RunSettings>
