@@ -19,14 +19,14 @@ public abstract class UITestFixtureBase : PageTest
     }
 
     [TearDown]
-    public virtual void BaseTearDown()
+    public virtual async Task BaseTearDownAsync()
     {
         TestStopwatch.Stop();
         TestContext.Progress.WriteLine($"Test duration: {TestStopwatch.ElapsedMilliseconds}ms");
 
         if (TestContext.CurrentContext.Result.Outcome.Status.ToString() == "Failed")
         {
-            CaptureScreenshot();
+            await CaptureScreenshot();
         }
     }
 
