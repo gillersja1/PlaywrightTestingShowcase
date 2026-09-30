@@ -27,19 +27,25 @@ PlaywrightTestingShowcase/
 ├── tests/
 │   ├── CalculatorLib.UnitTests/       # NUnit unit tests + allureConfig.json
 │   ├── UI.Tests/                      # Playwright UI tests (saucedemo.com & neverdeliver.co.uk) + Page Objects
-│   │   ├── PageObjects/               # Reusable page object models for both sites
-│   │   ├── SauceDemoLoginTests.cs
-│   │   ├── SauceDemoProductTests.cs
-│   │   ├── SauceDemoCartTests.cs
-│   │   ├── SauceDemoCheckoutTests.cs
-│   │   ├── NeverDeliverLoginTests.cs
-│   │   ├── NeverDeliverShoppingTests.cs
-│   │   ├── NeverDeliverBasketTests.cs
-│   │   ├── NeverDeliverCheckoutTests.cs
+│   │   ├── PageObjects/               # Enhanced page object models (Login, Inventory, Cart, Checkout)
+│   │   ├── Fixtures/                  # UITestFixtureBase with retry logic, screenshot capture
+│   │   ├── TestData/                  # Test data builder and constants
+│   │   ├── SauceDemo/                 # Organized test suites by domain
+│   │   │   ├── Authentication/        # 9 comprehensive auth tests
+│   │   │   ├── Shopping/              # 10 shopping & inventory tests
+│   │   │   ├── Cart/                  # 10 cart management tests
+│   │   │   ├── Checkout/              # 10 checkout validation tests
+│   │   │   ├── Accessibility/         # 7 accessibility/WCAG tests
+│   │   │   └── Performance/           # 8 performance & load tests
+│   │   ├── Never​Deliver*/            # Tests for secondary site (organized similarly)
 │   │   ├── allureConfig.json
-│   │   └── playwright.runsettings     # Browser selection, overridable in CI
-│   └── Api.Tests/                     # Playwright API tests (reqres.in) + allureConfig.json
-├── .github/workflows/ci.yml           # CI pipeline (unit, API, UI x3 browsers, report)
+│   │   └── playwright.runsettings     # Browser selection, trace/video capture config
+│   └── Api.Tests/                     # Playwright API tests (jsonplaceholder.typicode.com) + allureConfig.json
+├── docs/
+│   └── TRACE_VIDEO_OUTPUT_GUIDE.md   # Guide for accessing and using trace/video artifacts
+├── .github/
+│   ├── copilot-instructions.md       # Team coding guidelines
+│   └── workflows/ci.yml              # CI pipeline (unit, API, UI x3 browsers, report)
 └── PlaywrightTestingShowcase.sln
 ```
 
@@ -48,7 +54,7 @@ PlaywrightTestingShowcase/
 | Project | Type | Target | Test Coverage |
 |---|---|---|---|
 | `CalculatorLib.UnitTests` | Unit | `CalculatorLib` (in-repo class library) | Calculator operations |
-| `UI.Tests` | UI / E2E | [saucedemo.com](https://www.saucedemo.com/) | Login, Product browsing, Shopping cart, Checkout (15 tests) |
+| `UI.Tests` | UI / E2E | [saucedemo.com](https://www.saucedemo.com/) | **54 comprehensive tests**: Authentication (9), Shopping (10), Cart (10), Checkout (10), Accessibility (7), Performance (8) |
 | `UI.Tests` | UI / E2E | [neverdeliver.co.uk](https://neverdeliver.co.uk/) | Authentication, Shopping, Basket management, Order completion (22 tests) |
 | `Api.Tests` | API | [JSONPlaceholder](https://jsonplaceholder.typicode.com/) — free fake API for testing | Posts, Comments, Users, Todos, Albums, Photos (23 tests) |
 
@@ -67,7 +73,7 @@ dotnet test tests/CalculatorLib.UnitTests/CalculatorLib.UnitTests.csproj
 dotnet build tests/UI.Tests/UI.Tests.csproj
 pwsh tests/UI.Tests/bin/Debug/net8.0/playwright.ps1 install --with-deps
 
-# Run all UI tests (defaults to chromium — see playwright.runsettings)
+# Run all UI tests (defaults to chromium — see playwright.runsettings with video+trace capture)
 dotnet test tests/UI.Tests/UI.Tests.csproj --settings tests/UI.Tests/playwright.runsettings
 
 # Run UI tests against a specific browser
@@ -75,6 +81,24 @@ dotnet test tests/UI.Tests/UI.Tests.csproj --settings tests/UI.Tests/playwright.
 
 # Run only SauceDemo tests
 dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemo" --settings tests/UI.Tests/playwright.runsettings
+
+# Run only SauceDemo Authentication tests (9 tests)
+dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemoAuthententicationTests" --settings tests/UI.Tests/playwright.runsettings
+
+# Run only SauceDemo Shopping tests (10 tests)
+dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemoShoppingTests" --settings tests/UI.Tests/playwright.runsettings
+
+# Run only SauceDemo Cart tests (10 tests)
+dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemoCartTests" --settings tests/UI.Tests/playwright.runsettings
+
+# Run only SauceDemo Checkout tests (10 tests)
+dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemoCheckoutValidationTests" --settings tests/UI.Tests/playwright.runsettings
+
+# Run only Accessibility tests (7 tests)
+dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemoAccessibilityTests" --settings tests/UI.Tests/playwright.runsettings
+
+# Run only Performance tests (8 tests)
+dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemoPerformanceTests" --settings tests/UI.Tests/playwright.runsettings
 
 # Run only NeverDeliver tests
 dotnet test tests/UI.Tests/UI.Tests.csproj --filter "NeverDeliver" --settings tests/UI.Tests/playwright.runsettings
@@ -84,6 +108,9 @@ dotnet test tests/Api.Tests/Api.Tests.csproj
 
 # Run API tests against JSONPlaceholder
 dotnet test tests/Api.Tests/Api.Tests.csproj --filter "JsonPlaceholder" --settings tests/Api.Tests/jsonplaceholder.runsettings
+
+# View captured trace files (videos and traces automatically saved to bin/Debug/net8.0/)
+npx playwright show-trace tests/UI.Tests/bin/Debug/net8.0/trace/trace.zip
 ```
 
 > If `pwsh` isn't installed, grab it from the
@@ -93,12 +120,53 @@ dotnet test tests/Api.Tests/Api.Tests.csproj --filter "JsonPlaceholder" --settin
 
 ## UI Test Suites
 
-### SauceDemo Tests (15 tests)
-Tests the [saucedemo.com](https://www.saucedemo.com/) e-commerce site:
-- **SauceDemoLoginTests** — User authentication and error handling
-- **SauceDemoProductTests** — Product catalog browsing and cart operations
-- **SauceDemoCartTests** — Cart management and item removal
-- **SauceDemoCheckoutTests** — Order completion with various scenarios
+### SauceDemo Tests (54 comprehensive tests)
+Tests the [saucedemo.com](https://www.saucedemo.com/) e-commerce site with extensive coverage:
+
+#### Authentication & Login (9 tests)
+- **SauceDemoAuthenticationTests** — User validation, empty fields, special characters, keyboard shortcuts
+  - Valid login, locked out users, invalid input handling
+  - Boundary testing with special chars and very long usernames
+  - Alternative login methods (Enter key support)
+
+#### Shopping & Inventory (10 tests)
+- **SauceDemoShoppingTests** — Product discovery and cart operations
+  - Product display and pricing validation
+  - Add/remove items, multiple item handling
+  - Cart badge updates, persistence across navigation
+  - Problem user scenario testing
+
+#### Shopping Cart (10 tests)
+- **SauceDemoCartTests** — Cart management and calculations
+  - Item count verification
+  - Total calculation (subtotal + tax precision validation)
+  - Tax computation, multiple items handling
+  - Item removal and cart state transitions
+
+#### Checkout & Validation (10 tests)
+- **SauceDemoCheckoutValidationTests** — Order completion workflows
+  - Required field validation (First Name, Last Name, Postal Code)
+  - Empty field error handling
+  - Special character and long name handling
+  - Cart state verification during checkout
+
+#### Accessibility (7 tests)
+- **SauceDemoAccessibilityTests** — WCAG compliance and screen reader support
+  - Input labels and ARIA attributes
+  - Cart badge accessibility
+  - Interactive element text content
+  - Form input accessibility (placeholders, labels)
+  - Error message visibility for screen readers
+  - Proper heading hierarchy
+  - Image alt text verification
+
+#### Performance (8 tests)
+- **SauceDemoPerformanceTests** — Load times and response metrics
+  - Page load time assertions (< 5 seconds)
+  - Add-to-cart response time (< 2 seconds)
+  - Cart/checkout page performance
+  - Product visibility timing
+  - Response time consistency across operations
 
 ### NeverDeliver Tests (22 tests)
 Tests the [neverdeliver.co.uk](https://neverdeliver.co.uk/) e-commerce site:
@@ -107,7 +175,7 @@ Tests the [neverdeliver.co.uk](https://neverdeliver.co.uk/) e-commerce site:
 - **NeverDeliverBasketTests** — Shopping basket management
 - **NeverDeliverCheckoutTests** — Complete order workflows
 
-Both suites demonstrate the Page Object Model pattern with dedicated page objects for each page/feature.
+All suites use the **Page Object Model** pattern with dedicated, enhanced page objects for better maintainability and reusability.
 
 ## API Test Suites
 
@@ -122,6 +190,41 @@ Organized into resource-focused test classes for better maintainability:
 - **JsonPlaceholderMediaTests** (7 tests) — Albums and photos with filtering
 
 JSONPlaceholder is ideal for API testing because it requires no authentication, provides realistic data structures, and supports full CRUD operations.
+
+## Test infrastructure & features
+
+### Trace & Video Capture
+All UI tests automatically capture:
+- **Video recordings** (`.webm` format) — Full browser screen recordings for every test
+- **Detailed traces** (`.zip` format) — Playwright trace archives containing DOM snapshots, network logs, console messages, screenshots, and action timeline
+
+Videos and traces are saved to `tests/UI.Tests/bin/Debug/net8.0/` and are invaluable for debugging failed tests:
+```bash
+# View a trace file (requires Node.js/npm)
+npx playwright show-trace <path-to-trace.zip>
+```
+
+Configure recording in `tests/UI.Tests/playwright.runsettings`:
+- `RecordVideo` and `RecordTrace` set to `on` (all tests)
+- Can be set to `retain-on-failure` to save disk space in CI
+
+See [docs/TRACE_VIDEO_OUTPUT_GUIDE.md](docs/TRACE_VIDEO_OUTPUT_GUIDE.md) for complete details.
+
+### Test Fixture Base & Helpers
+`UITestFixtureBase` provides:
+- Automatic screenshot capture on test failure
+- Page load time assertions with configurable timeouts
+- Retry logic with exponential backoff for flaky operations
+- Test performance tracking and logging
+- Derived test classes benefit from all infrastructure automatically
+
+### Test Data & Constants
+`TestDataBuilder` centralizes:
+- Login credentials (valid user, locked out user, problem user, invalid inputs)
+- Checkout information (valid, invalid, edge cases with special characters)
+- Product names and constants
+- Error message expectations
+- All test scenarios reusable across multiple test classes
 
 ## Cross-browser testing
 
@@ -177,6 +280,8 @@ inspect what went wrong without re-running anything.
 - Add a `docker-compose.yml` to run tests in containers
 - Add a nightly scheduled run in addition to push/PR triggers
 - Add visual regression testing with Playwright's screenshot comparisons
-- Add retry logic and flaky-test quarantine tagging via Allure
-- Expand test coverage for edge cases and security scenarios
-- Add performance/load testing with Playwright
+- Integrate flaky-test quarantine tagging and retry strategies via Allure
+- Expand test coverage for additional edge cases and security scenarios
+- Add load/stress testing with Playwright
+- Add contract testing between UI and API layers
+- Implement test environment management (local, staging, production)
