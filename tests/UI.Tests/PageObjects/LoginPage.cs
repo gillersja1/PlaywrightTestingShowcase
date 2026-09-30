@@ -36,14 +36,32 @@ public class LoginPage
 
     public async Task<string> GetErrorMessageAsync()
     {
-        if (!await ErrorContainer.IsVisibleAsync())
+        try
+        {
+            // Try to get error text if it exists
+            await ErrorMessage.WaitForAsync(new LocatorWaitForOptions { Timeout = 2000 });
+            return await ErrorMessage.InnerTextAsync();
+        }
+        catch
+        {
+            // If element doesn't exist or timeout, return empty
             return string.Empty;
-        return await ErrorMessage.InnerTextAsync();
+        }
     }
 
     public async Task<bool> IsErrorMessageVisibleAsync()
     {
-        return await ErrorContainer.IsVisibleAsync();
+        try
+        {
+            // Check if error message element exists and has text
+            await ErrorMessage.WaitForAsync(new LocatorWaitForOptions { Timeout = 2000 });
+            var text = await ErrorMessage.InnerTextAsync();
+            return !string.IsNullOrEmpty(text);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public async Task<string> GetUsernameFieldValueAsync()
