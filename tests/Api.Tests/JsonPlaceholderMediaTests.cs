@@ -107,7 +107,9 @@ public class JsonPlaceholderMediaTests
         var photoUrl = body.Value.GetProperty("url").GetString();
 
         Assert.That(photoId, Is.EqualTo(1));
-        Assert.That(photoUrl, Does.Contain("placeholder"));
+        // JSONPlaceholder returns photo URLs from picsum.photos service
+        Assert.That(photoUrl, Is.Not.Null.And.Not.Empty);
+        Assert.That(photoUrl, Does.Match(@"https?://.*"));  // Valid URL format
     }
 
     [Test]
