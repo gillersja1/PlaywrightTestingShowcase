@@ -1,1 +1,0 @@
-Login page load time: 8486ms
