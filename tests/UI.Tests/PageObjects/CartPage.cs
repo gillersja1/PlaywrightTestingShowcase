@@ -10,6 +10,7 @@ public class CartPage
 {
     private readonly IPage _page;
 
+    private ILocator CartList => _page.Locator(".cart_list");
     private ILocator CartItems => _page.Locator(".cart_item");
     private ILocator CheckoutButton => _page.Locator("#checkout");
     private ILocator ContinueShoppingButton => _page.Locator("#continue-shopping");
@@ -25,7 +26,7 @@ public class CartPage
     public async Task GotoAsync()
     {
         await _page.ClickAsync(".shopping_cart_link");
-        await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await CartList.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
     }
 
     public async Task<int> GetItemCountAsync()

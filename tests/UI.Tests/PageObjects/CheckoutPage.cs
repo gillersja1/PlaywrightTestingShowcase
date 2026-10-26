@@ -15,7 +15,6 @@ public class CheckoutPage
     private ILocator ContinueButton => _page.Locator("#continue");
     private ILocator FinishButton => _page.Locator("#finish");
     private ILocator CompleteHeader => _page.Locator(".complete-header");
-    private ILocator ErrorContainer => _page.Locator("[data-test='error-container']");
     private ILocator ErrorMessage => _page.Locator("[data-test='error']");
     private ILocator BackButton => _page.Locator("#back-to-products");
     private ILocator CartItems => _page.Locator(".cart_item");
@@ -51,14 +50,14 @@ public class CheckoutPage
 
     public async Task<string> GetErrorMessageAsync()
     {
-        if (!await ErrorContainer.IsVisibleAsync())
+        if (!await ErrorMessage.IsVisibleAsync())
             return string.Empty;
         return await ErrorMessage.InnerTextAsync();
     }
 
     public async Task<bool> IsErrorMessageVisibleAsync()
     {
-        return await ErrorContainer.IsVisibleAsync();
+        return await ErrorMessage.IsVisibleAsync();
     }
 
     public async Task<string> GetFirstNameValueAsync()

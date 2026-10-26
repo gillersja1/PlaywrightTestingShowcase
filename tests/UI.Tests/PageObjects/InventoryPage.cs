@@ -15,7 +15,7 @@ public class InventoryPage
     private ILocator InventoryItems => _page.Locator(".inventory_item");
     private ILocator CartLink => _page.Locator(".shopping_cart_link");
     private ILocator SortDropdown => _page.Locator(".page_wrapper .select_container select");
-    private ILocator ProductImages => _page.Locator(".inventory_item_img");
+    private ILocator ProductImages => _page.Locator("img.inventory_item_img");
 
     public InventoryPage(IPage page)
     {
@@ -27,7 +27,10 @@ public class InventoryPage
     public async Task AddItemToCartAsync(string itemName)
     {
         var item = InventoryItems.Filter(new LocatorFilterOptions { HasText = itemName });
-        await item.Locator("button").Filter(new LocatorFilterOptions { HasText = "Add to cart" }).ClickAsync();
+        var addButton = item.Locator("button").Filter(new LocatorFilterOptions { HasText = "Add to cart" });
+        await addButton.ClickAsync();
+        await item.Locator("button").Filter(new LocatorFilterOptions { HasText = "Remove" })
+            .WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
     }
 
     public async Task<int> GetCartCountAsync()
@@ -111,6 +114,7 @@ public class InventoryPage
     public async Task GoToCartAsync()
     {
         await CartLink.ClickAsync();
-        await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await _page.Locator(".cart_list")
+            .WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
     }
 }

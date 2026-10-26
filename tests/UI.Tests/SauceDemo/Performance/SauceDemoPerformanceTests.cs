@@ -35,7 +35,7 @@ public class SauceDemoPerformanceTests : UITestFixtureBase
     {
         var stopwatch = Stopwatch.StartNew();
         await _loginPage.GotoAsync();
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.Locator("#user-name").WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
         stopwatch.Stop();
 
         TestContext.WriteLine($"Login page load time: {stopwatch.ElapsedMilliseconds}ms");
