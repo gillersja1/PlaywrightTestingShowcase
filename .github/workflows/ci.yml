@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, ci-cache-playwright-browsers]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -61,6 +61,12 @@ jobs:
       - name: Build API test project
         run: dotnet build tests/Api.Tests/Api.Tests.csproj --no-restore
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-api-${{ hashFiles('tests/Api.Tests/Api.Tests.csproj') }}
+
       - name: Install Playwright browsers
         run: pwsh tests/Api.Tests/bin/Debug/net8.0/playwright.ps1 install --with-deps chromium
 
@@ -104,6 +110,12 @@ jobs:
 
       - name: Build UI test project
         run: dotnet build tests/UI.Tests/UI.Tests.csproj --no-restore
+
+      - name: Cache Playwright browsers (${{ matrix.browser }})
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-ui-${{ matrix.browser }}-${{ hashFiles('tests/UI.Tests/UI.Tests.csproj') }}
 
       - name: Install Playwright browser (${{ matrix.browser }})
         run: pwsh tests/UI.Tests/bin/Debug/net8.0/playwright.ps1 install --with-deps ${{ matrix.browser }}
