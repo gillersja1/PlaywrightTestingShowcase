@@ -140,6 +140,8 @@ public class SauceDemoCheckoutValidationTests : UITestFixtureBase
 
         await _inventoryPage.GoToCartAsync();
         await _cartPage.ClickCheckoutAsync();
+        await _checkoutPage.FillInformationAsync("John", "Doe", "12345");
+        await _checkoutPage.ClickContinueAsync();
 
         var cartItemCount = await _checkoutPage.GetCartItemCountAsync();
         Assert.That(cartItemCount, Is.EqualTo(2));
@@ -158,6 +160,8 @@ public class SauceDemoCheckoutValidationTests : UITestFixtureBase
         await _inventoryPage.GoToCartAsync();
         await _cartPage.RemoveItemFromCartAsync(SauceDemoTestData.Products.Backpack);
         await _cartPage.ClickCheckoutAsync();
+        await _checkoutPage.FillInformationAsync("John", "Doe", "12345");
+        await _checkoutPage.ClickContinueAsync();
 
         var cartItemCount = await _checkoutPage.GetCartItemCountAsync();
         Assert.That(cartItemCount, Is.EqualTo(1));

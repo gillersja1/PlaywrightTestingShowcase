@@ -17,6 +17,7 @@ public class SauceDemoCartTests : UITestFixtureBase
     private LoginPage _loginPage = null!;
     private InventoryPage _inventoryPage = null!;
     private CartPage _cartPage = null!;
+    private CheckoutPage _checkoutPage = null!;
 
     [SetUp]
     public void Setup()
@@ -25,6 +26,7 @@ public class SauceDemoCartTests : UITestFixtureBase
         _loginPage = new LoginPage(Page);
         _inventoryPage = new InventoryPage(Page);
         _cartPage = new CartPage(Page);
+        _checkoutPage = new CheckoutPage(Page);
     }
 
     private async Task LoginAndAddItemsAsync(params string[] items)
@@ -68,10 +70,11 @@ public class SauceDemoCartTests : UITestFixtureBase
     public async Task CartTotalCalculatesCorrectly()
     {
         await LoginAndAddItemsAsync(SauceDemoTestData.Products.Backpack, SauceDemoTestData.Products.BikeLight);
+        await GoToCheckoutOverviewAsync();
 
-        var subtotal = await _cartPage.GetSubtotalAsync();
-        var tax = await _cartPage.GetTaxAsync();
-        var total = await _cartPage.GetTotalAsync();
+        var subtotal = await _checkoutPage.GetSubtotalAsync();
+        var tax = await _checkoutPage.GetTaxAsync();
+        var total = await _checkoutPage.GetTotalAsync();
 
         var calculated = subtotal + tax;
         Assert.That(total, Is.EqualTo(calculated).Within(0.01), "Total should equal subtotal + tax");
@@ -114,9 +117,10 @@ public class SauceDemoCartTests : UITestFixtureBase
     public async Task TaxCalculatesCorrectly()
     {
         await LoginAndAddItemsAsync(SauceDemoTestData.Products.Backpack);
+        await GoToCheckoutOverviewAsync();
 
-        var subtotal = await _cartPage.GetSubtotalAsync();
-        var tax = await _cartPage.GetTaxAsync();
+        var subtotal = await _checkoutPage.GetSubtotalAsync();
+        var tax = await _checkoutPage.GetTaxAsync();
 
         // Tax should be approximately 10% of subtotal (SauceDemo uses ~8% but varies)
         Assert.That(tax, Is.GreaterThan(0), "Tax should be calculated");
@@ -132,11 +136,19 @@ public class SauceDemoCartTests : UITestFixtureBase
             SauceDemoTestData.Products.BikeLight,
             SauceDemoTestData.Products.TShirt
         );
+        await GoToCheckoutOverviewAsync();
 
-        var count = await _cartPage.GetItemCountAsync();
-        var subtotal = await _cartPage.GetSubtotalAsync();
+        var count = await _checkoutPage.GetCartItemCountAsync();
+        var subtotal = await _checkoutPage.GetSubtotalAsync();
 
         Assert.That(count, Is.EqualTo(3));
         Assert.That(subtotal, Is.GreaterThan(0));
+    }
+
+    private async Task GoToCheckoutOverviewAsync()
+    {
+        await _cartPage.ClickCheckoutAsync();
+        await _checkoutPage.FillInformationAsync("Test", "User", "12345");
+        await _checkoutPage.ClickContinueAsync();
     }
 }

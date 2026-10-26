@@ -10,13 +10,11 @@ public class CartPage
 {
     private readonly IPage _page;
 
+    private ILocator PageTitle => _page.Locator(".title");
     private ILocator CartList => _page.Locator(".cart_list");
     private ILocator CartItems => _page.Locator(".cart_item");
     private ILocator CheckoutButton => _page.Locator("#checkout");
     private ILocator ContinueShoppingButton => _page.Locator("#continue-shopping");
-    private ILocator SubtotalLabel => _page.Locator(".subtotal_label");
-    private ILocator TaxLabel => _page.Locator(".tax_label");
-    private ILocator TotalLabel => _page.Locator(".total_label");
 
     public CartPage(IPage page)
     {
@@ -26,6 +24,8 @@ public class CartPage
     public async Task GotoAsync()
     {
         await _page.ClickAsync(".shopping_cart_link");
+        await PageTitle.Filter(new LocatorFilterOptions { HasText = "Your Cart" })
+            .WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
         await CartList.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
     }
 
@@ -46,35 +46,20 @@ public class CartPage
     public async Task ClickCheckoutAsync()
     {
         await CheckoutButton.ClickAsync();
+        await _page.Locator("#first-name")
+            .WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
     }
 
     public async Task ClickContinueShoppingAsync()
     {
         await ContinueShoppingButton.ClickAsync();
-        await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await PageTitle.Filter(new LocatorFilterOptions { HasText = "Products" })
+            .WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
     }
 
     public async Task<bool> IsCartEmptyAsync()
     {
         return await GetItemCountAsync() == 0;
-    }
-
-    public async Task<decimal> GetSubtotalAsync()
-    {
-        var text = await SubtotalLabel.InnerTextAsync();
-        return ExtractPrice(text);
-    }
-
-    public async Task<decimal> GetTaxAsync()
-    {
-        var text = await TaxLabel.InnerTextAsync();
-        return ExtractPrice(text);
-    }
-
-    public async Task<decimal> GetTotalAsync()
-    {
-        var text = await TotalLabel.InnerTextAsync();
-        return ExtractPrice(text);
     }
 
     public async Task<List<string>> GetCartItemNamesAsync()
@@ -89,15 +74,5 @@ public class CartPage
         }
 
         return names;
-    }
-
-    private static decimal ExtractPrice(string text)
-    {
-        var match = System.Text.RegularExpressions.Regex.Match(text, @"\$([0-9.]+)");
-        if (match.Success && decimal.TryParse(match.Groups[1].Value, out var price))
-        {
-            return price;
-        }
-        return 0;
     }
 }

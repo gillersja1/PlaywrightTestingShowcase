@@ -18,6 +18,9 @@ public class CheckoutPage
     private ILocator ErrorMessage => _page.Locator("[data-test='error']");
     private ILocator BackButton => _page.Locator("#back-to-products");
     private ILocator CartItems => _page.Locator(".cart_item");
+    private ILocator SubtotalLabel => _page.Locator(".summary_subtotal_label");
+    private ILocator TaxLabel => _page.Locator(".summary_tax_label");
+    private ILocator TotalLabel => _page.Locator(".summary_total_label");
 
     public CheckoutPage(IPage page)
     {
@@ -34,7 +37,8 @@ public class CheckoutPage
     public async Task ClickContinueAsync()
     {
         await ContinueButton.ClickAsync();
-        await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await _page.WaitForFunctionAsync(
+            "() => document.querySelector('.summary_info') || document.querySelector('[data-test=\"error\"]')");
     }
 
     public async Task ClickFinishAsync()
@@ -91,5 +95,17 @@ public class CheckoutPage
     public async Task<int> GetCartItemCountAsync()
     {
         return await CartItems.CountAsync();
+    }
+
+    public async Task<decimal> GetSubtotalAsync() => ExtractPrice(await SubtotalLabel.InnerTextAsync());
+
+    public async Task<decimal> GetTaxAsync() => ExtractPrice(await TaxLabel.InnerTextAsync());
+
+    public async Task<decimal> GetTotalAsync() => ExtractPrice(await TotalLabel.InnerTextAsync());
+
+    private static decimal ExtractPrice(string text)
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(text, @"\$([0-9.]+)");
+        return match.Success && decimal.TryParse(match.Groups[1].Value, out var price) ? price : 0;
     }
 }

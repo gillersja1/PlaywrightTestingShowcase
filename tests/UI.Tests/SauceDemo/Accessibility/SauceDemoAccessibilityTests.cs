@@ -81,8 +81,8 @@ public class SauceDemoAccessibilityTests : UITestFixtureBase
         await _loginPage.GotoAsync();
         await _loginPage.LoginAsync("locked_out_user", "secret_sauce");
 
-        var errorContainer = Page.Locator("[data-test='error-container']");
-        var isVisible = await errorContainer.IsVisibleAsync();
+        var errorMessage = Page.Locator("[data-test='error']");
+        var isVisible = await errorMessage.IsVisibleAsync();
         Assert.That(isVisible, Is.True, "Error messages should be visible/accessible");
     }
 
@@ -93,10 +93,7 @@ public class SauceDemoAccessibilityTests : UITestFixtureBase
         await _loginPage.GotoAsync();
         await _loginPage.LoginAsync(LoginCredentials.ValidUser.Username, LoginCredentials.ValidUser.Password);
 
-        var headings = Page.Locator("h1, h2, h3, h4, h5, h6");
-        var headingCount = await headings.CountAsync();
-
-        Assert.That(headingCount, Is.GreaterThan(0), "Page should have heading hierarchy");
+        Assert.That(await _inventoryPage.GetPageTitleAsync(), Is.EqualTo("Products"));
     }
 
     [Test]

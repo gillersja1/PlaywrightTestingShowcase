@@ -114,6 +114,8 @@ public class InventoryPage
     public async Task GoToCartAsync()
     {
         await CartLink.ClickAsync();
+        await _page.Locator(".title").Filter(new LocatorFilterOptions { HasText = "Your Cart" })
+            .WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
         await _page.Locator(".cart_list")
             .WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
     }
