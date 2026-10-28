@@ -83,7 +83,7 @@ dotnet test tests/UI.Tests/UI.Tests.csproj --settings tests/UI.Tests/playwright.
 dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemo" --settings tests/UI.Tests/playwright.runsettings
 
 # Run only SauceDemo Authentication tests (9 tests)
-dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemoAuthententicationTests" --settings tests/UI.Tests/playwright.runsettings
+dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemoAuthenticationTests" --settings tests/UI.Tests/playwright.runsettings
 
 # Run only SauceDemo Shopping tests (10 tests)
 dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemoShoppingTests" --settings tests/UI.Tests/playwright.runsettings

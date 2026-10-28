@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, ci-cache-playwright-browsers]
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:

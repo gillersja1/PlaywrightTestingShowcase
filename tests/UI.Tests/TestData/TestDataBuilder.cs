@@ -8,6 +8,7 @@ public record LoginCredentials(string Username, string Password, string? Expecte
     public static LoginCredentials ValidUser => new("standard_user", "secret_sauce");
     public static LoginCredentials ProblemUser => new("problem_user", "secret_sauce");
     public static LoginCredentials LockedOutUser => new("locked_out_user", "secret_sauce", "locked out");
+    public static LoginCredentials PerformanceGlitchUser => new("performance_glitch_user", "secret_sauce");
 
     public static IEnumerable<LoginCredentials> InvalidInputs => new[]
     {

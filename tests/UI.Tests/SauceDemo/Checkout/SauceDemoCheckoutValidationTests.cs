@@ -167,6 +167,45 @@ public class SauceDemoCheckoutValidationTests : UITestFixtureBase
         Assert.That(cartItemCount, Is.EqualTo(1));
     }
 
+    [Test]
+    [AllureSeverity(SeverityLevel.critical)]
+    public async Task CheckoutWithMultipleItemsCompletesSuccessfully()
+    {
+        await _loginPage.GotoAsync();
+        await _loginPage.LoginAsync(LoginCredentials.ValidUser.Username, LoginCredentials.ValidUser.Password);
+
+        await _inventoryPage.AddItemToCartAsync(SauceDemoTestData.Products.Backpack);
+        await _inventoryPage.AddItemToCartAsync(SauceDemoTestData.Products.BikeLight);
+        await _inventoryPage.AddItemToCartAsync(SauceDemoTestData.Products.TShirt);
+
+        await _inventoryPage.GoToCartAsync();
+        Assert.That(await _cartPage.GetItemCountAsync(), Is.EqualTo(3), "Cart should have 3 items");
+
+        await _cartPage.ClickCheckoutAsync();
+        await _checkoutPage.FillInformationAsync(CheckoutInfo.Valid.FirstName, CheckoutInfo.Valid.LastName, CheckoutInfo.Valid.PostalCode);
+        await _checkoutPage.ClickContinueAsync();
+        await _checkoutPage.ClickFinishAsync();
+
+        Assert.That(await _checkoutPage.GetCompleteHeaderAsync(), Is.EqualTo("Thank you for your order!"));
+    }
+
+    [Test]
+    [AllureSeverity(SeverityLevel.normal)]
+    public async Task PerformanceGlitchUser_CanCompleteCheckout()
+    {
+        await _loginPage.GotoAsync();
+        await _loginPage.LoginAsync(LoginCredentials.PerformanceGlitchUser.Username, LoginCredentials.PerformanceGlitchUser.Password);
+
+        await _inventoryPage.AddItemToCartAsync(SauceDemoTestData.Products.Backpack);
+        await _inventoryPage.GoToCartAsync();
+        await _cartPage.ClickCheckoutAsync();
+        await _checkoutPage.FillInformationAsync(CheckoutInfo.Valid.FirstName, CheckoutInfo.Valid.LastName, CheckoutInfo.Valid.PostalCode);
+        await _checkoutPage.ClickContinueAsync();
+        await _checkoutPage.ClickFinishAsync();
+
+        Assert.That(await _checkoutPage.GetCompleteHeaderAsync(), Is.EqualTo("Thank you for your order!"));
+    }
+
     private static IEnumerable<CheckoutInfo> GetInvalidCheckoutInfo()
     {
         return CheckoutInfo.InvalidInputs;
