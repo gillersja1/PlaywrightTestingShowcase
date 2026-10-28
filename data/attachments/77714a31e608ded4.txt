@@ -1,1 +1,0 @@
-Product visibility check time: 4ms
