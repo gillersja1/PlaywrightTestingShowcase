@@ -124,7 +124,22 @@ jobs:
         run: >
           dotnet test tests/UI.Tests/UI.Tests.csproj --no-build
           --settings tests/UI.Tests/playwright.runsettings
+          --filter "TestCategory!=KnownDefect"
           --logger "trx;LogFileName=ui-test-results-${{ matrix.browser }}.trx"
+          --results-directory ./TestResults
+          -- Playwright.BrowserName=${{ matrix.browser }}
+
+      # Tests for defects found in the sites under test. They assert the
+      # correct behavior, so they fail until the site is fixed; running them
+      # separately keeps them visible in the reports without blocking CI.
+      - name: Run known-defect tests on ${{ matrix.browser }} (non-blocking)
+        if: always()
+        continue-on-error: true
+        run: >
+          dotnet test tests/UI.Tests/UI.Tests.csproj --no-build
+          --settings tests/UI.Tests/playwright.runsettings
+          --filter "TestCategory=KnownDefect"
+          --logger "trx;LogFileName=known-defects-${{ matrix.browser }}.trx"
           --results-directory ./TestResults
           -- Playwright.BrowserName=${{ matrix.browser }}
 

@@ -26,7 +26,7 @@ PlaywrightTestingShowcase/
 │   └── CalculatorLib/                 # Simple library acting as the "system under test"
 ├── tests/
 │   ├── CalculatorLib.UnitTests/       # NUnit unit tests + allureConfig.json
-│   ├── UI.Tests/                      # Playwright UI tests (saucedemo.com & neverdeliver.co.uk) + Page Objects
+│   ├── UI.Tests/                      # Playwright UI tests (saucedemo.com & never-deliver-shop.vercel.app) + Page Objects
 │   │   ├── PageObjects/               # Enhanced page object models (Login, Inventory, Cart, Checkout)
 │   │   ├── Fixtures/                  # UITestFixtureBase with retry logic, screenshot capture
 │   │   ├── TestData/                  # Test data builder and constants
@@ -55,7 +55,7 @@ PlaywrightTestingShowcase/
 |---|---|---|---|
 | `CalculatorLib.UnitTests` | Unit | `CalculatorLib` (in-repo class library) | Calculator operations |
 | `UI.Tests` | UI / E2E | [saucedemo.com](https://www.saucedemo.com/) | **54 comprehensive tests**: Authentication (9), Shopping (10), Cart (10), Checkout (10), Accessibility (7), Performance (8) |
-| `UI.Tests` | UI / E2E | [neverdeliver.co.uk](https://neverdeliver.co.uk/) | Authentication, Shopping, Basket management, Order completion (22 tests) |
+| `UI.Tests` | UI / E2E | [never-deliver-shop.vercel.app](https://never-deliver-shop.vercel.app/) | Catalog & filtering, Cart, Checkout, Order history (25 tests, incl. 2 known-defect tests) |
 | `Api.Tests` | API | [JSONPlaceholder](https://jsonplaceholder.typicode.com/) — free fake API for testing | Posts, Comments, Users, Todos, Albums, Photos (23 tests) |
 
 ## Running locally
@@ -101,7 +101,10 @@ dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemoAccessibilityTests
 dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemoPerformanceTests" --settings tests/UI.Tests/playwright.runsettings
 
 # Run only NeverDeliver tests
-dotnet test tests/UI.Tests/UI.Tests.csproj --filter "NeverDeliver" --settings tests/UI.Tests/playwright.runsettings
+dotnet test tests/UI.Tests/UI.Tests.csproj --filter "FullyQualifiedName~NeverDeliver" --settings tests/UI.Tests/playwright.runsettings
+
+# Run only the known-defect tests (these fail until the site is fixed)
+dotnet test tests/UI.Tests/UI.Tests.csproj --filter "TestCategory=KnownDefect" --settings tests/UI.Tests/playwright.runsettings
 
 # Run API tests
 dotnet test tests/Api.Tests/Api.Tests.csproj
@@ -168,12 +171,25 @@ Tests the [saucedemo.com](https://www.saucedemo.com/) e-commerce site with exten
   - Product visibility timing
   - Response time consistency across operations
 
-### NeverDeliver Tests (22 tests)
-Tests the [neverdeliver.co.uk](https://neverdeliver.co.uk/) e-commerce site:
-- **NeverDeliverLoginTests** — User login and validation
-- **NeverDeliverShoppingTests** — Product browsing and catalog features
-- **NeverDeliverBasketTests** — Shopping basket management
-- **NeverDeliverCheckoutTests** — Complete order workflows
+### NeverDeliver Tests (25 tests)
+Tests [never-deliver-shop.vercel.app](https://never-deliver-shop.vercel.app/), a satirical e-commerce demo
+with a large catalog, a slide-out cart and a three-step checkout:
+- **NeverDeliverCatalogTests** — Result summary, product cards, category filtering (data-driven across categories), add to cart
+- **NeverDeliverCartTests** — Remove items, empty cart, subtotal = sum of lines, quantity changes, stock-limit boundary, proceed to checkout
+- **NeverDeliverCheckoutTests** — End-to-end order with confirmation number, special-character addresses, required-field validation (data-driven across all 5 fields), delivery-speed pricing
+- **NeverDeliverOrderHistoryTests** — Empty state, placed order appears in history
+
+#### Defects found
+
+Tests tagged `[Category("KnownDefect")]` assert the *correct* behavior, so
+they fail until the site is fixed. CI runs them in a separate,
+non-blocking step: the build stays green, and the failures stay visible in
+the TRX and Allure reports.
+
+| ID | Defect | Severity | Test |
+|---|---|---|---|
+| ND-1 | Next Day Delivery surcharge is shown as **+$9.99** while the store currency is GBP (£) | Minor | `NextDayDeliveryPrice_UsesStoreCurrency` |
+| ND-2 | Checkout address labels ("Full name", "Postcode", …) aren't associated with their inputs, so screen readers can't announce them (WCAG 1.3.1 / 4.1.2) | Normal (a11y) | `AddressFields_HaveAccessibleLabels` |
 
 All suites use the **Page Object Model** pattern with dedicated, enhanced page objects for better maintainability and reusability.
 
