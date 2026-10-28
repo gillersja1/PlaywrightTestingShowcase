@@ -1,0 +1,1 @@
+Average add to cart time: 26.333333333333332ms, Max: 33ms
