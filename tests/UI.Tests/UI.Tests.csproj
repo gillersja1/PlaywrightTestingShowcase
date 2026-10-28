@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Deque.AxeCore.Playwright" Version="4.14.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="Microsoft.Playwright.NUnit" Version="1.61.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />

@@ -35,7 +35,7 @@ PlaywrightTestingShowcase/
 │   │   │   ├── Shopping/              # 10 shopping & inventory tests
 │   │   │   ├── Cart/                  # 10 cart management tests
 │   │   │   ├── Checkout/              # 10 checkout validation tests
-│   │   │   ├── Accessibility/         # 7 accessibility/WCAG tests
+│   │   │   ├── Accessibility/         # axe-core WCAG 2.1 AA scans + keyboard/screen-reader tests
 │   │   │   └── Performance/           # 8 performance & load tests
 │   │   ├── Never​Deliver*/            # Tests for secondary site (organized similarly)
 │   │   ├── allureConfig.json
@@ -54,7 +54,7 @@ PlaywrightTestingShowcase/
 | Project | Type | Target | Test Coverage |
 |---|---|---|---|
 | `CalculatorLib.UnitTests` | Unit | `CalculatorLib` (in-repo class library) | Calculator operations |
-| `UI.Tests` | UI / E2E | [saucedemo.com](https://www.saucedemo.com/) | **54 comprehensive tests**: Authentication (9), Shopping (10), Cart (10), Checkout (10), Accessibility (7), Performance (8) |
+| `UI.Tests` | UI / E2E | [saucedemo.com](https://www.saucedemo.com/) | **54 comprehensive tests**: Authentication (9), Shopping (10), Cart (10), Checkout (10), Accessibility (15, axe-core), Performance (8) |
 | `UI.Tests` | UI / E2E | [never-deliver-shop.vercel.app](https://never-deliver-shop.vercel.app/) | Catalog & filtering, Cart, Checkout, Order history (25 tests, incl. 2 known-defect tests) |
 | `Api.Tests` | API | [JSONPlaceholder](https://jsonplaceholder.typicode.com/) — free fake API for testing | Posts, Comments, Users, Todos, Albums, Photos (23 tests) |
 
@@ -94,7 +94,7 @@ dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemoCartTests" --setti
 # Run only SauceDemo Checkout tests (10 tests)
 dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemoCheckoutValidationTests" --settings tests/UI.Tests/playwright.runsettings
 
-# Run only Accessibility tests (7 tests)
+# Run only Accessibility tests (15 tests)
 dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemoAccessibilityTests" --settings tests/UI.Tests/playwright.runsettings
 
 # Run only Performance tests (8 tests)
@@ -153,15 +153,12 @@ Tests the [saucedemo.com](https://www.saucedemo.com/) e-commerce site with exten
   - Special character and long name handling
   - Cart state verification during checkout
 
-#### Accessibility (7 tests)
-- **SauceDemoAccessibilityTests** — WCAG compliance and screen reader support
-  - Input labels and ARIA attributes
-  - Cart badge accessibility
-  - Interactive element text content
-  - Form input accessibility (placeholders, labels)
-  - Error message visibility for screen readers
-  - Proper heading hierarchy
-  - Image alt text verification
+#### Accessibility (15 tests)
+- **SauceDemoAccessibilityTests**: automated scans with [axe-core](https://github.com/dequelabs/axe-core) (`Deque.AxeCore.Playwright`), plus behavior a rules engine can't check
+  - **WCAG 2.1 A/AA scan of all 8 screens** in the purchase flow (login, login error, inventory, product details, cart, checkout info, overview, complete). Data-driven with `[Values]`, and failures list each violated rule, its impact and the offending selectors
+  - **Keyboard-only use**: log in with Tab and Enter, and add to cart with Enter
+  - **Screen-reader behavior**: login errors are exposed as an ARIA `alert`, and the icon-only dismiss button has an accessible name
+  - **Known defect SD-A11Y-1** (`KnownDefect`, non-blocking): axe best-practice rules fail. No page has an `<h1>`, the login logo sits outside a landmark, and the error `<h3>` carries `role="alert"`
 
 #### Performance (8 tests)
 - **SauceDemoPerformanceTests** — Load times and response metrics
