@@ -18,6 +18,10 @@ This is a demo/portfolio project meant to show:
 - Rich, unified test reporting across all three layers with Allure
 - A working, parallelized CI pipeline that auto-publishes an HTML report
 
+See [docs/TEST_STRATEGY.md](docs/TEST_STRATEGY.md) for the reasoning behind
+the tests: risks per target, what runs at which level, how flaky tests and
+defects are handled, and what blocks a merge.
+
 ## Project structure
 
 ```
