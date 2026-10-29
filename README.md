@@ -82,23 +82,26 @@ dotnet test tests/UI.Tests/UI.Tests.csproj --settings tests/UI.Tests/playwright.
 # Run only SauceDemo tests
 dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemo" --settings tests/UI.Tests/playwright.runsettings
 
-# Run only SauceDemo Authentication tests (9 tests)
+# Run only SauceDemo Authentication tests (11 tests)
 dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemoAuthenticationTests" --settings tests/UI.Tests/playwright.runsettings
 
-# Run only SauceDemo Shopping tests (10 tests)
+# Run only SauceDemo Shopping tests (9 tests)
 dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemoShoppingTests" --settings tests/UI.Tests/playwright.runsettings
 
-# Run only SauceDemo Cart tests (10 tests)
+# Run only SauceDemo Cart tests (8 tests)
 dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemoCartTests" --settings tests/UI.Tests/playwright.runsettings
 
-# Run only SauceDemo Checkout tests (10 tests)
+# Run only SauceDemo Checkout tests (14 tests)
 dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemoCheckoutValidationTests" --settings tests/UI.Tests/playwright.runsettings
 
 # Run only Accessibility tests (15 tests)
 dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemoAccessibilityTests" --settings tests/UI.Tests/playwright.runsettings
 
-# Run only Performance tests (8 tests)
+# Run only Performance tests (7 tests)
 dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemoPerformanceTests" --settings tests/UI.Tests/playwright.runsettings
+
+# Run only SauceDemo user-contract tests (45 tests: 9 checks x 5 accounts)
+dotnet test tests/UI.Tests/UI.Tests.csproj --filter "SauceDemoUserContractTests" --settings tests/UI.Tests/playwright.runsettings
 
 # Run only NeverDeliver tests
 dotnet test tests/UI.Tests/UI.Tests.csproj --filter "FullyQualifiedName~NeverDeliver" --settings tests/UI.Tests/playwright.runsettings
@@ -123,30 +126,30 @@ npx playwright show-trace tests/UI.Tests/bin/Debug/net8.0/trace/trace.zip
 
 ## UI Test Suites
 
-### SauceDemo Tests (54 comprehensive tests)
+### SauceDemo Tests (109 tests)
 Tests the [saucedemo.com](https://www.saucedemo.com/) e-commerce site with extensive coverage:
 
-#### Authentication & Login (9 tests)
+#### Authentication & Login (11 tests)
 - **SauceDemoAuthenticationTests** — User validation, empty fields, special characters, keyboard shortcuts
   - Valid login, locked out users, invalid input handling
   - Boundary testing with special chars and very long usernames
   - Alternative login methods (Enter key support)
 
-#### Shopping & Inventory (10 tests)
+#### Shopping & Inventory (9 tests)
 - **SauceDemoShoppingTests** — Product discovery and cart operations
   - Product display and pricing validation
   - Add/remove items, multiple item handling
   - Cart badge updates, persistence across navigation
   - Problem user scenario testing
 
-#### Shopping Cart (10 tests)
+#### Shopping Cart (8 tests)
 - **SauceDemoCartTests** — Cart management and calculations
   - Item count verification
   - Total calculation (subtotal + tax precision validation)
   - Tax computation, multiple items handling
   - Item removal and cart state transitions
 
-#### Checkout & Validation (10 tests)
+#### Checkout & Validation (14 tests)
 - **SauceDemoCheckoutValidationTests** — Order completion workflows
   - Required field validation (First Name, Last Name, Postal Code)
   - Empty field error handling
@@ -160,13 +163,26 @@ Tests the [saucedemo.com](https://www.saucedemo.com/) e-commerce site with exten
   - **Screen-reader behavior**: login errors are exposed as an ARIA `alert`, and the icon-only dismiss button has an accessible name
   - **Known defect SD-A11Y-1** (`KnownDefect`, non-blocking): axe best-practice rules fail. No page has an `<h1>`, the login logo sits outside a landmark, and the error `<h3>` carries `role="alert"`
 
-#### Performance (8 tests)
+#### Performance (7 tests)
 - **SauceDemoPerformanceTests** — Load times and response metrics
   - Page load time assertions (< 5 seconds)
   - Add-to-cart response time (< 2 seconds)
   - Cart/checkout page performance
   - Product visibility timing
   - Response time consistency across operations
+
+#### User contracts (45 tests)
+- **SauceDemoUserContractTests**: every SauceDemo account must behave like `standard_user`. One data-driven test runs **9 checks × 5 accounts**: distinct product images, catalog prices, price sort, adding three items, removing an item, product link, checkout form keeps typed values, checkout completes, and login under 3 s
+  - The `KnownDefects` map in the test records which checks each account is known to break. Those cases are tagged `KnownDefect` (non-blocking), and everything else must pass, so a new bug on any account fails the build
+  - Checks act like a user: the checkout form is filled key by key so input-handling bugs show up, and login time is measured until the inventory renders (not until network idle, which SauceDemo's background analytics delay)
+
+| Account | Known broken checks |
+|---|---|
+| `standard_user` | none (the baseline) |
+| `problem_user` | product images, price sort, adding three items, removing an item, product link (opens the wrong product), checkout form, checkout completes |
+| `error_user` | price sort, adding three items, removing an item, checkout form, checkout completes |
+| `visual_user` | product images, catalog prices, price sort |
+| `performance_glitch_user` | login under 3 s (takes about 5 s) |
 
 ### NeverDeliver Tests (25 tests)
 Tests [never-deliver-shop.vercel.app](https://never-deliver-shop.vercel.app/), a satirical e-commerce demo
