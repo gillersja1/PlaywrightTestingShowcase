@@ -29,9 +29,9 @@ public class NeverDeliverCartTests : UITestFixtureBase
     /// </summary>
     private async Task<NeverDeliverCartDrawer> AddProductsAndOpenCartAsync(int count)
     {
-        for (var i = 0; i < count; i++)
+        foreach (var index in await _shopPage.FindWellStockedProductIndexesAsync(count))
         {
-            await _shopPage.AddProductToCartAsync(i + 1);
+            await _shopPage.AddProductToCartAsync(index);
         }
         var cart = await _shopPage.OpenCartAsync();
         await cart.WaitForItemCountAsync(count);

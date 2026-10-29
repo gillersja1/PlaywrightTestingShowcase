@@ -74,6 +74,29 @@ public class NeverDeliverShopPage
         throw new InvalidOperationException($"No product card contains \"{cardText}\"");
     }
 
+    /// <summary>
+    /// Indexes of the first <paramref name="count"/> product cards without a
+    /// low-stock warning ("Only N left in stock!"). The live catalog's stock
+    /// changes, so tests that raise quantities can't rely on fixed positions.
+    /// </summary>
+    public async Task<IReadOnlyList<int>> FindWellStockedProductIndexesAsync(int count)
+    {
+        var indexes = new List<int>();
+        var total = await ProductCards.CountAsync();
+        for (var i = 0; i < total && indexes.Count < count; i++)
+        {
+            if (!(await ProductCards.Nth(i).InnerTextAsync()).Contains("left in stock"))
+            {
+                indexes.Add(i);
+            }
+        }
+        if (indexes.Count < count)
+        {
+            throw new InvalidOperationException($"Only {indexes.Count} well-stocked products on the page, needed {count}");
+        }
+        return indexes;
+    }
+
     public async Task AddProductToCartAsync(int index)
     {
         await ProductCards.Nth(index)
