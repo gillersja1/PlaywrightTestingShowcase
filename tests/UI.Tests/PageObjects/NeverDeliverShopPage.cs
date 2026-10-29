@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using Microsoft.Playwright;
+using NUnit.Framework;
 using UI.Tests.TestData;
 using static Microsoft.Playwright.Assertions;
 
@@ -30,9 +31,28 @@ public class NeverDeliverShopPage
     public async Task GotoAsync()
     {
         await _page.GotoAsync(NeverDeliverTestData.BaseUrl + "/");
-        // The catalog loads client-side from the live site, which can take
-        // longer than the default 5s expect timeout (seen on WebKit in CI).
-        await Expect(ResultSummary).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 15000 });
+        // The catalog is fetched client-side from third-party APIs (dummyjson.com,
+        // fakestoreapi.com). Under CI's parallel load a fetch occasionally stalls
+        // and the catalog never renders, so reload once before failing.
+        if (!await CatalogLoadsAsync())
+        {
+            TestContext.Progress.WriteLine("NeverDeliver catalog did not load within 15s; reloading once");
+            await _page.ReloadAsync();
+            await Expect(ResultSummary).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 15000 });
+        }
+    }
+
+    private async Task<bool> CatalogLoadsAsync()
+    {
+        try
+        {
+            await ResultSummary.WaitForAsync(new LocatorWaitForOptions { Timeout = 15000 });
+            return true;
+        }
+        catch (TimeoutException)
+        {
+            return false;
+        }
     }
 
     public async Task<int> GetResultCountAsync()
