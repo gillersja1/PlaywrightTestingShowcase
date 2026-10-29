@@ -28,10 +28,20 @@ public class LoginPage
 
     public async Task LoginAsync(string username, string password)
     {
+        await SubmitCredentialsAsync(username, password);
+        await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+    }
+
+    /// <summary>
+    /// Submits the form without waiting for network idle. SauceDemo's
+    /// background analytics requests delay network idle well past the point
+    /// the inventory renders, so timing checks shouldn't include that wait.
+    /// </summary>
+    public async Task SubmitCredentialsAsync(string username, string password)
+    {
         await UsernameInput.FillAsync(username);
         await PasswordInput.FillAsync(password);
         await LoginButton.ClickAsync();
-        await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
     }
 
     public async Task<string> GetErrorMessageAsync()
