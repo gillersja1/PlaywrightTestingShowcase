@@ -65,6 +65,13 @@ public class SauceDemoUserContractTests : UITestFixtureBase
 
     private const int ResponsiveLoginMs = 3000;
 
+    /// <summary>
+    /// performance_glitch_user is slow by design, and WebKit in CI sometimes needs
+    /// more than 5s to reach the Finish button. Other users keep the short wait so
+    /// problem_user's missing Finish button still fails fast.
+    /// </summary>
+    private static int StepTimeoutMs(string user) => user == "performance_glitch_user" ? 15000 : 5000;
+
     private static IEnumerable<TestCaseData> Contract()
     {
         foreach (var (user, defects) in KnownDefects)
@@ -157,8 +164,9 @@ public class SauceDemoUserContractTests : UITestFixtureBase
                 await Page.Locator("#checkout").ClickAsync();
                 await FillCheckoutInformationAsync();
                 await Page.Locator("#continue").ClickAsync();
-                await Page.Locator("#finish").ClickAsync(new() { Timeout = 5000 });
-                await Expect(Page).ToHaveURLAsync(SauceDemoTestData.BaseUrl + "/checkout-complete.html");
+                await Page.Locator("#finish").ClickAsync(new() { Timeout = StepTimeoutMs(user) });
+                await Expect(Page).ToHaveURLAsync(SauceDemoTestData.BaseUrl + "/checkout-complete.html",
+                    new() { Timeout = StepTimeoutMs(user) });
                 break;
 
             case Check.LoginIsResponsive:
