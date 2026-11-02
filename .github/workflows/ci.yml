@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    # Weekly (Friday 06:19 UTC): the sites and APIs under test can change without a commit here. Public repo, so free minutes.
+    - cron: '19 6 * * 5'
 
 jobs:
   unit-tests:
