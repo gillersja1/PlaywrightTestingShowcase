@@ -16,6 +16,7 @@ This is a demo/portfolio project meant to show:
   HTTP client library needed)
 - Cross-browser UI testing (Chromium, Firefox, WebKit) via a CI matrix
 - Rich, unified test reporting across all three layers with Allure
+- Mutation testing with Stryker.NET, to check the unit tests would actually catch bugs
 - A working, parallelized CI pipeline that auto-publishes an HTML report
 
 See [docs/TEST_STRATEGY.md](docs/TEST_STRATEGY.md) for the reasoning behind
@@ -291,6 +292,25 @@ npx allure-commandline@2 open allure-report
 
 > Allure's commandline tool requires a Java runtime (JRE 8+) on your machine.
 
+## Mutation testing with Stryker.NET
+
+Code coverage says which lines the tests *ran*; mutation testing checks whether they
+would *notice* if those lines were wrong. [Stryker.NET](https://stryker-mutator.io/docs/stryker-net/introduction/)
+makes small changes to `CalculatorLib` (a `+` becomes a `-`, a `<` becomes `<=`, a string goes blank),
+reruns the unit tests against each one, and reports every change that no test caught.
+
+The first run scored **94.4%**: one mutant survived. Blanking the `"Cannot divide by zero."` message
+broke nothing, because the test only checked the exception's type. The test now checks the message too,
+and the score is **100%** (18 of 18 mutants killed).
+
+```bash
+dotnet tool restore
+dotnet stryker            # settings in stryker-config.json; report in StrykerOutput/
+```
+
+CI runs it on every push and pull request, adds the summary to the run page, uploads the HTML report
+as the `mutation-report` artifact, and fails the build if the score drops below 80%.
+
 ## CI/CD
 
 `.github/workflows/ci.yml` runs on every push/PR to `main`:
@@ -298,6 +318,7 @@ npx allure-commandline@2 open allure-report
 - **unit-tests** — runs `CalculatorLib.UnitTests`
 - **api-tests** — runs `Api.Tests` against JSONPlaceholder
 - **ui-tests** — matrix job, runs `UI.Tests` against Chromium, Firefox, and WebKit in parallel
+- **mutation-tests** — runs Stryker.NET against `CalculatorLib` (see above)
 - **allure-report** — waits on all of the above, merges results, and publishes the combined report
 
 All jobs upload `.trx` and Allure result artifacts even on failure, so you can

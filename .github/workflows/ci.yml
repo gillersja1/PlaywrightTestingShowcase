@@ -54,6 +54,40 @@ jobs:
           name: allure-results-unit
           path: tests/CalculatorLib.UnitTests/bin/Debug/net8.0/allure-results
 
+  mutation-tests:
+    name: Mutation Tests (Stryker.NET)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore tools
+        run: dotnet tool restore
+
+      # Stryker changes the library's code one small way at a time (a + becomes a -, a
+      # message goes blank) and reruns the unit tests. Each change the tests don't catch
+      # "survives". Settings, including the score that fails the build, are in stryker-config.json.
+      - name: Run Stryker
+        run: dotnet stryker --output StrykerOutput
+
+      - name: Add the mutation summary to the run
+        if: always()
+        run: |
+          if [ -f StrykerOutput/reports/mutation-report.md ]; then
+            cat StrykerOutput/reports/mutation-report.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-report
+          path: StrykerOutput/reports
+
   api-tests:
     name: API Tests
     runs-on: ubuntu-latest
@@ -199,7 +233,7 @@ jobs:
   allure-report:
     name: Publish Allure Report
     runs-on: ubuntu-latest
-    needs: [unit-tests, api-tests, ui-tests]
+    needs: [unit-tests, mutation-tests, api-tests, ui-tests]
     if: always()
     permissions:
       contents: write
@@ -216,6 +250,14 @@ jobs:
 
       - name: Generate Allure report
         run: npx allure-commandline@2 generate merged-allure-results --clean -o allure-report
+
+      # Published alongside Allure, at /mutation/mutation-report.html.
+      - name: Add the mutation report
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: mutation-report
+          path: allure-report/mutation
 
       - name: Upload Allure report artifact
         uses: actions/upload-artifact@v4

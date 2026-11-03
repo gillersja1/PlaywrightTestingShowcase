@@ -31,3 +31,6 @@ Thumbs.db
 
 # Local runsettings (may contain secrets)
 tests/Api.Tests/reqres.runsettings
+
+# Stryker.NET mutation testing output
+StrykerOutput/

@@ -1,0 +1,9 @@
+{
+  "stryker-config": {
+    "solution": "PlaywrightTestingShowcase.sln",
+    "project": "CalculatorLib.csproj",
+    "test-projects": [ "tests/CalculatorLib.UnitTests/CalculatorLib.UnitTests.csproj" ],
+    "reporters": [ "progress", "cleartext", "html", "json", "markdown" ],
+    "thresholds": { "high": 90, "low": 80, "break": 80 }
+  }
+}
