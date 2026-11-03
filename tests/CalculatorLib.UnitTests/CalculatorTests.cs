@@ -48,7 +48,10 @@ public class CalculatorTests
     [Test]
     public void Divide_ByZero_ThrowsDivideByZeroException()
     {
-        Assert.Throws<DivideByZeroException>(() => _calculator.Divide(10, 0));
+        var error = Assert.Throws<DivideByZeroException>(() => _calculator.Divide(10, 0));
+
+        // Checking the message too: Stryker showed that blanking it went unnoticed.
+        Assert.That(error!.Message, Is.EqualTo("Cannot divide by zero."));
     }
 
     [TestCase(2, true)]
